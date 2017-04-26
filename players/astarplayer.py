@@ -15,6 +15,7 @@ get to any path that we have not yet explored.
 """
 import heapq
 import pprint
+import sys
 
 from game import moves
 from game.mazefield_attributes import Path, Finish, Wall, Start
@@ -128,10 +129,10 @@ class Map:
             for x in range(self._map_width()):
                 if (((y + self.map_y0) == self.pos_y) and 
                     ((x + self.map_x0) == self.pos_x)):
-                    print("@", end='')
+                    sys.stdout.write("@")
                 else:
-                    print(chars[self.map[x][y]], end='')
-            print()
+                    sys.stdout.write(chars[self.map[x][y]])
+            sys.stdout.write("\n")
 
     def is_interesting(self, x, y):
         x_idx = x - self.map_x0
