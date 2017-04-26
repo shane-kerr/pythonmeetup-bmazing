@@ -20,6 +20,7 @@ from game import moves
 from game.mazefield_attributes import Path, Finish, Wall, Start
 from players.player import Player
 
+DEBUG=False
 
 def dist(x0, y0, x1, y1):
     """distance between two positions using only cardinal movement"""
@@ -94,8 +95,9 @@ class Map:
         self.map_y0 -= 1
 
     def remember_surroundings(self, surroundings):
-#        print("---- before ---")
-#        pprint.pprint(vars(self))
+        if DEBUG:
+            print("---- before ---")
+            pprint.pprint(vars(self))
         if self.pos_x == self.map_x0:
             self._grow_map_left()
         if self.pos_x == self.map_x1:
@@ -110,11 +112,13 @@ class Map:
         self.map[x+1][y] = surroundings.right
         self.map[x][y-1] = surroundings.down
         self.map[x][y+1] = surroundings.up
-#        print("---- after ---")
-#        pprint.pprint(vars(self))
+        if DEBUG:
+            print("---- after ---")
+            pprint.pprint(vars(self))
 
     def dump(self):
-#        pprint.pprint(vars(self))
+        if DEBUG:
+            pprint.pprint(vars(self))
         chars = { None: " ",
                   Path: ".",
                   Wall: "#",
@@ -164,13 +168,13 @@ class Map:
         result = []
         x_idx = x - self.map_x0
         y_idx = y - self.map_y0
-        if (x > self.map_x0) and (self.map[x_idx-1][y_idx] == Path):
+        if (x > self.map_x0) and (self.map[x_idx-1][y_idx] in (Path, Start)):
             result.append((x-1, y))
-        if (x < self.map_x1) and (self.map[x_idx+1][y_idx] == Path):
+        if (x < self.map_x1) and (self.map[x_idx+1][y_idx] in (Path, Start)):
             result.append((x+1, y))
-        if (y > self.map_y0) and (self.map[x_idx][y_idx-1] == Path):
+        if (y > self.map_y0) and (self.map[x_idx][y_idx-1] in (Path, Start)):
             result.append((x, y-1))
-        if (y < self.map_y1) and (self.map[x_idx][y_idx+1] == Path):
+        if (y < self.map_y1) and (self.map[x_idx][y_idx+1] in (Path, Start)):
             result.append((x, y+1))
         return result
 
@@ -230,8 +234,6 @@ class Map:
                     p.append((est_nxt, (x_nxt, y_nxt)))
                     heapq.heapify(p)
                     v[(x_nxt, y_nxt)] = (est_nxt, (node_x, node_y))
-        print("No path to", x, y)
-        exit(1)
         return None
 
 
@@ -240,35 +242,46 @@ class AStarPlayer(Player):
 
     def __init__(self):
         self.map = Map()
-        self.move_count = 0
 
     def turn(self, surroundings):
         # TODO: save the path between turns
-        self.move_count += 1
+
+        # hack to handle victory condition
+        if surroundings.left == Finish:
+            return moves.LEFT
+        if surroundings.right == Finish:
+            return moves.RIGHT
+        if surroundings.up == Finish:
+            return moves.UP
+        if surroundings.down == Finish:
+            return moves.DOWN
+
         self.map.remember_surroundings(surroundings)
-        self.map.dump()
+        if DEBUG:
+            self.map.dump()
         shortest_path = None
         for candidate in self.map.all_interesting():
             path = self.map.find_path_to(candidate[0], candidate[1])
+            if path is None:
+                # this should never happen, but...
+                continue
             if (shortest_path is None) or (len(path) < len(shortest_path)):
                 shortest_path = path
-        print(shortest_path)
+        if DEBUG:
+            print(shortest_path)
         next_pos = shortest_path[0]
-        input()
+        if DEBUG:
+            input()
         if self.map.pos_x+1 == next_pos[0]:
             self.map.move_right()
-            print("moving right!")
             return moves.RIGHT
         if self.map.pos_x-1 == next_pos[0]:
             self.map.move_left()
-            print("moving left!")
             return moves.LEFT
         if self.map.pos_y+1 == next_pos[1]:
             self.map.move_up()
-            print("moving up!")
             return moves.UP
         if self.map.pos_y-1 == next_pos[1]:
             self.map.move_down()
-            print("moving down!")
             return moves.DOWN
         return "pass"
