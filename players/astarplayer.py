@@ -21,7 +21,8 @@ from game import moves
 from game.mazefield_attributes import Path, Finish, Wall, Start
 from players.player import Player
 
-DEBUG=False
+DEBUG = False
+
 
 def dist(x0, y0, x1, y1):
     """distance between two positions using only cardinal movement"""
@@ -120,15 +121,15 @@ class Map:
     def dump(self):
         if DEBUG:
             pprint.pprint(vars(self))
-        chars = { None: " ",
-                  Path: ".",
-                  Wall: "#",
-                  Finish: ">",
-                  Start: "<", }
+        chars = {None: " ",
+                 Path: ".",
+                 Wall: "#",
+                 Finish: ">",
+                 Start: "<", }
         for y in range(self._map_height()-1, -1, -1):
             for x in range(self._map_width()):
-                if (((y + self.map_y0) == self.pos_y) and 
-                    ((x + self.map_x0) == self.pos_x)):
+                if (((y + self.map_y0) == self.pos_y) and
+                        ((x + self.map_x0) == self.pos_x)):
                     sys.stdout.write("@")
                 else:
                     sys.stdout.write(chars[self.map[x][y]])
